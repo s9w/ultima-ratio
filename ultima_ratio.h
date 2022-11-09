@@ -17,6 +17,7 @@ namespace ultima_ratio
    struct ur_exception : std::runtime_error { using runtime_error::runtime_error; };
    struct ur_ex_denom_zero : ur_exception { using ur_exception::ur_exception;   };
    struct ur_ex_negative : ur_exception { using ur_exception::ur_exception;   };
+   struct ur_ex_remainder : ur_exception { using ur_exception::ur_exception;   };
 
    template<std::integral T, typename ... modifiers>
    struct ratio
@@ -46,16 +47,19 @@ namespace ultima_ratio
          }
       }
 
+
       template<std::intmax_t num, std::intmax_t denom>
       constexpr explicit ratio(const std::ratio<num, denom>)
          : ratio(num, denom)
       {}
+
 
       template<std::floating_point fp_type>
       [[nodiscard]] constexpr auto get_fp() const -> fp_type // TODO: noexcept
       {
          return static_cast<fp_type>(m_num) / static_cast<fp_type>(m_denom);
       }
+
 
       [[nodiscard]] constexpr auto num() const noexcept -> T { return m_num; }
       [[nodiscard]] constexpr auto denom() const noexcept -> T { return m_denom; }
@@ -71,13 +75,14 @@ namespace ultima_ratio
    template<typename T>
    concept ratio_c = is_ratio_v<T>;
 
+
    // Multiplication with integer
    template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
    [[nodiscard]] constexpr auto operator*(const ratio_type& ratio, const other_type other) -> other_type
    {
       if ((other * ratio.num()) % ratio.denom() != 0)
       {
-         throw ur_exception{ "Multiplication with integer leaves a remainder" };
+         throw ur_ex_remainder{ "Multiplication with integer leaves a remainder" };
       }
       return other * ratio.num() / ratio.denom();
    }
@@ -86,6 +91,7 @@ namespace ultima_ratio
    {
       return ratio * other;
    }
+
 
    // Multiplication with floating points
    template<ultima_ratio::ratio_c ratio_type, std::floating_point other_type>
@@ -99,12 +105,14 @@ namespace ultima_ratio
       return ratio * other;
    }
 
+
    // Multiplication between ratios
    template<ultima_ratio::ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator*(const ratio_type& a, const ratio_type& b) -> ratio_type
    {
       return ratio(a.num() * b.num(), a.denom() * b.denom());
    }
+
 
    // Comparison between ratios
    template<ultima_ratio::ratio_c ratio_type>
@@ -122,6 +130,7 @@ namespace ultima_ratio
       return static_cast<int>(a.num()) == static_cast<int>(b.num()) && static_cast<int>(b.denom()) == static_cast<int>(b.denom());
    }
 
+
    // Comparison with integer
    template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
    requires(ratio_type::is_int_comparable)
@@ -129,6 +138,7 @@ namespace ultima_ratio
    {
       return a.denom() == static_cast<ratio_type::value_type>(1) && a.num() == other;
    }
+
 
    // CDAT
    ratio() -> ratio<int>;
