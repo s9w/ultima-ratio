@@ -47,6 +47,10 @@ static_assert(ratio(6, 3)* ratio(6, 2) == ratio(36, 6));
 static_assert(ratio(2, 1) * 2.0f == 4.0f);
 static_assert(2.0f * ratio(2, 1) == 4.0f);
 
+// Integer Division
+static_assert(4 / ratio(2,1) == 2);
+static_assert(ratio(2,1) / 2 == 1);
+
 
 template<typename ex_type, typename fun_type>
 auto expect_throw(const fun_type& fun) -> void
@@ -69,6 +73,8 @@ int main()
 {
    expect_throw<ur_ex_remainder>([]() { const auto x = ratio{ 3,2 } *1; });
    expect_throw<ur_ex_remainder>([]() { const auto x = 1 * ratio{ 3,2 }; });
+   expect_throw<ur_ex_remainder>([]() { const auto x = 4 / ratio{ 3,2 }; });
+   expect_throw<ur_ex_remainder>([]() { const auto x = ratio{ 4,2 } / 3; });
 
    return 0;
 }

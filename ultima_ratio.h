@@ -93,6 +93,23 @@ namespace ultima_ratio
    }
 
 
+   // Division with integer
+   template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
+   [[nodiscard]] constexpr auto operator/(const other_type other, const ratio_type& ratio) -> other_type
+   {
+      if ((other * ratio.denom()) % ratio.num() != 0)
+      {
+         throw ur_ex_remainder{ "Integer division leaves a remainder" };
+      }
+      return other * ratio.denom() / ratio.num();
+   }
+   template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
+   [[nodiscard]] constexpr auto operator/(const ratio_type& ratio, const other_type other) -> other_type
+   {
+      return other / ratio;
+   }
+
+
    // Multiplication with floating points
    template<ultima_ratio::ratio_c ratio_type, std::floating_point other_type>
    [[nodiscard]] constexpr auto operator*(const ratio_type& ratio, const other_type other) -> other_type
@@ -147,3 +164,4 @@ namespace ultima_ratio
 }
 
 // todo: missing more comparisons
+// todo: construction from fp types if possible
