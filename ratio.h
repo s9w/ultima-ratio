@@ -12,6 +12,7 @@ namespace rat
    concept t_in_types = (std::same_as<T, types> || ...); // TODO in detail ns
 
    struct int_comparable;
+   struct hetero_comparable;
 
    struct ur_exception final : std::runtime_error { using runtime_error::runtime_error; };
 
@@ -24,6 +25,8 @@ namespace rat
 
    public:
       using value_type = T;
+      constexpr static inline bool is_int_comparable = t_in_types<int_comparable, modifiers...>;
+      constexpr static inline bool is_hetero_comparable = t_in_types<hetero_comparable, modifiers...>;
 
       constexpr explicit ratio() = default;
 
@@ -108,12 +111,21 @@ namespace rat
       return a.num() == b.num() && b.denom() == b.denom();
    }
 
-   // Comparison with integer
-   template<std::integral other_type, std::integral T, typename ... modifiers>
-   requires(t_in_types<int_comparable, modifiers...>)
-   [[nodiscard]] constexpr auto operator==(const ratio<T, modifiers...>& a, const other_type other) -> bool
+
+   // Comparison between ratios of different type
+   template<rat::ratio_c ratio_type_a, rat::ratio_c ratio_type_b>
+   requires(ratio_type_a::is_hetero_comparable && ratio_type_b::is_hetero_comparable)
+   [[nodiscard]] constexpr auto operator==(const ratio_type_a& a, const ratio_type_b& b) -> bool
    {
-      return a.denom() == static_cast<T>(1) && a.num() == other;
+      return static_cast<int>(a.num()) == static_cast<int>(b.num()) && static_cast<int>(b.denom()) == static_cast<int>(b.denom());
+   }
+
+   // Comparison with integer
+   template<rat::ratio_c ratio_type, std::integral other_type>
+   requires(ratio_type::is_int_comparable)
+   [[nodiscard]] constexpr auto operator==(const ratio_type& a, const other_type other) -> bool
+   {
+      return a.denom() == static_cast<ratio_type::value_type>(1) && a.num() == other;
    }
 
    // CDAT
@@ -121,3 +133,5 @@ namespace rat
    template<std::intmax_t num, std::intmax_t denom>
    ratio(const std::ratio<num, denom>) -> ratio<std::intmax_t>;
 }
+
+// todo: missing more comparisons
