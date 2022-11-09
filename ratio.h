@@ -1,12 +1,15 @@
 #pragma once
 
-#include <concepts>
-#include <numeric>
+#include <stdexcept>
 #include <ratio>
+#include <numeric>
+#include <concepts>
 
 
 namespace rat
 {
+   struct ur_exception final : std::runtime_error { using runtime_error::runtime_error; };
+
    template<std::integral T>
    struct ratio
    {
@@ -24,11 +27,11 @@ namespace rat
       {
          if (denom == static_cast<T>(0))
          {
-            // TODO
+            throw ur_exception{"denominator is zero"};
          }
          if (denom < static_cast<T>(0))
          {
-            // TODO
+            throw ur_exception{ "denominator is negative" };
          }
       }
 
@@ -76,8 +79,7 @@ constexpr auto rat::operator*(const ratio<ratio_value_type>& ratio, const other_
 {
    if ((other * ratio.num()) % ratio.denom() != 0)
    {
-      // TODO
-      // std::terminate();
+      throw ur_exception{ "Multiplication with integer leaves a remainder" };
    }
    return other * ratio.num() / ratio.denom();
 }
