@@ -1,7 +1,9 @@
 #pragma once
 
-#include <ratio>
 #include <concepts>
+#include <numeric>
+#include <ratio>
+
 
 namespace frac
 {
@@ -46,10 +48,16 @@ namespace frac
    };
 
    // Operators
-   template<std::integral ratio_value_type, std::integral other_type>
-   [[nodiscard]] constexpr auto operator*(const fraction<ratio_value_type>& ratio, const other_type other) -> other_type;
-   template<std::integral ratio_value_type, std::integral other_type>
-   [[nodiscard]] constexpr auto operator*(const other_type other, const fraction<ratio_value_type>& ratio)->other_type;
+   template<std::integral fraction_value_type, std::integral other_type>
+   [[nodiscard]] constexpr auto operator*(const fraction<fraction_value_type>& ratio, const other_type other) -> other_type;
+   template<std::integral fraction_value_type, std::integral other_type>
+   [[nodiscard]] constexpr auto operator*(const other_type other, const fraction<fraction_value_type>& ratio) -> other_type;
+   template<std::integral fraction_value_type>
+   [[nodiscard]] constexpr auto operator*(const fraction<fraction_value_type>& a, const fraction<fraction_value_type>& b) -> fraction<fraction_value_type>;
+
+   // Comparison
+   template<std::integral fraction_value_type>
+   [[nodiscard]] constexpr auto operator==(const fraction<fraction_value_type>& a, const fraction<fraction_value_type>& b) -> bool;
 
    // CDAT
    fraction()->fraction<int>;
@@ -58,8 +66,8 @@ namespace frac
 }
 
 
-template<std::integral ratio_value_type, std::integral other_type>
-constexpr auto frac::operator*(const fraction<ratio_value_type>& ratio, const other_type other) -> other_type
+template<std::integral fraction_value_type, std::integral other_type>
+constexpr auto frac::operator*(const fraction<fraction_value_type>& ratio, const other_type other) -> other_type
 {
    if ((other * ratio.num()) % ratio.denom() != 0)
    {
@@ -70,10 +78,25 @@ constexpr auto frac::operator*(const fraction<ratio_value_type>& ratio, const ot
 }
 
 
-template<std::integral ratio_value_type, std::integral other_type>
-constexpr auto frac::operator*(const other_type other, const fraction<ratio_value_type>& ratio) -> other_type
+template<std::integral fraction_value_type, std::integral other_type>
+constexpr auto frac::operator*(const other_type other, const fraction<fraction_value_type>& ratio) -> other_type
 {
    return ratio * other;
 }
 
 
+template<std::integral fraction_value_type>
+constexpr auto frac::operator*(
+   const fraction<fraction_value_type>& a,
+   const fraction<fraction_value_type>& b
+) -> fraction<fraction_value_type>
+{
+   return fraction(a.num() * b.num(), a.denom() * b.denom());
+}
+
+
+template<std::integral fraction_value_type>
+constexpr auto frac::operator==(const fraction<fraction_value_type>& a, const fraction<fraction_value_type>& b) -> bool
+{
+   return a.get_ratio<double>() == b.get_ratio<double>(); // TODO: this is awful
+}
