@@ -1,12 +1,12 @@
 #pragma once
 
-#include <stdexcept>
-#include <ratio>
-#include <numeric>
 #include <concepts>
+#include <numeric>
+#include <ratio>
+#include <stdexcept>
 
 
-namespace rat
+namespace ultima_ratio
 {
    template<typename T, typename ... types>
    concept t_in_types = (std::same_as<T, types> || ...); // TODO in detail ns
@@ -14,7 +14,9 @@ namespace rat
    struct int_comparable;
    struct hetero_comparable;
 
-   struct ur_exception final : std::runtime_error { using runtime_error::runtime_error; };
+   struct ur_exception : std::runtime_error { using runtime_error::runtime_error; };
+   struct ur_ex_denom_zero : ur_exception { using ur_exception::ur_exception;   };
+   struct ur_ex_negative : ur_exception { using ur_exception::ur_exception;   };
 
    template<std::integral T, typename ... modifiers>
    struct ratio
@@ -36,11 +38,11 @@ namespace rat
       {
          if (denom == static_cast<T>(0))
          {
-            throw ur_exception{"denominator is zero"};
+            throw ur_ex_denom_zero{"denominator is zero"};
          }
-         if (denom < static_cast<T>(0))
+         if (num < static_cast<T>(0) || denom < static_cast<T>(0))
          {
-            throw ur_exception{ "denominator is negative" };
+            throw ur_ex_negative{ "denominator is negative" };
          }
       }
 
@@ -70,7 +72,7 @@ namespace rat
    concept ratio_c = is_ratio_v<T>;
 
    // Multiplication with integer
-   template<rat::ratio_c ratio_type, std::integral other_type>
+   template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
    [[nodiscard]] constexpr auto operator*(const ratio_type& ratio, const other_type other) -> other_type
    {
       if ((other * ratio.num()) % ratio.denom() != 0)
@@ -79,33 +81,33 @@ namespace rat
       }
       return other * ratio.num() / ratio.denom();
    }
-   template<rat::ratio_c ratio_type, std::integral other_type>
+   template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
    [[nodiscard]] constexpr auto operator*(const other_type other, const ratio_type& ratio) -> other_type
    {
       return ratio * other;
    }
 
    // Multiplication with floating points
-   template<rat::ratio_c ratio_type, std::floating_point other_type>
+   template<ultima_ratio::ratio_c ratio_type, std::floating_point other_type>
    [[nodiscard]] constexpr auto operator*(const ratio_type& ratio, const other_type other) -> other_type
    {
       return ratio.template get_fp<other_type>() * other;
    }
-   template<rat::ratio_c ratio_type, std::floating_point other_type>
+   template<ultima_ratio::ratio_c ratio_type, std::floating_point other_type>
    [[nodiscard]] constexpr auto operator*(const other_type other, const ratio_type& ratio) -> other_type
    {
       return ratio * other;
    }
 
    // Multiplication between ratios
-   template<rat::ratio_c ratio_type>
+   template<ultima_ratio::ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator*(const ratio_type& a, const ratio_type& b) -> ratio_type
    {
       return ratio(a.num() * b.num(), a.denom() * b.denom());
    }
 
    // Comparison between ratios
-   template<rat::ratio_c ratio_type>
+   template<ultima_ratio::ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator==(const ratio_type& a, const ratio_type& b) -> bool
    {
       return a.num() == b.num() && b.denom() == b.denom();
@@ -113,7 +115,7 @@ namespace rat
 
 
    // Comparison between ratios of different type
-   template<rat::ratio_c ratio_type_a, rat::ratio_c ratio_type_b>
+   template<ultima_ratio::ratio_c ratio_type_a, ultima_ratio::ratio_c ratio_type_b>
    requires(ratio_type_a::is_hetero_comparable && ratio_type_b::is_hetero_comparable)
    [[nodiscard]] constexpr auto operator==(const ratio_type_a& a, const ratio_type_b& b) -> bool
    {
@@ -121,7 +123,7 @@ namespace rat
    }
 
    // Comparison with integer
-   template<rat::ratio_c ratio_type, std::integral other_type>
+   template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
    requires(ratio_type::is_int_comparable)
    [[nodiscard]] constexpr auto operator==(const ratio_type& a, const other_type other) -> bool
    {
