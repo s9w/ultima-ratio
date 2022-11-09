@@ -19,8 +19,8 @@ namespace rat
 
       constexpr explicit ratio() = default;
       constexpr explicit ratio(const T num, const T denom)
-         : m_num(num)
-         , m_denom(denom)
+         : m_num(num/std::gcd(num, denom))
+         , m_denom(denom/std::gcd(num, denom))
       {
          if (denom == static_cast<T>(0))
          {
@@ -37,21 +37,26 @@ namespace rat
          : ratio(num, denom)
       {}
 
-      template<std::floating_point ratio_type>
-      [[nodiscard]] constexpr auto get_ratio() const -> ratio_type
-      {
-         return static_cast<ratio_type>(m_num) / static_cast<ratio_type>(m_denom);
-      }
+      template<std::floating_point T>
+      [[nodiscard]] constexpr auto get_fp() const->T;
 
       [[nodiscard]] constexpr auto num() const noexcept -> T { return m_num; }
       [[nodiscard]] constexpr auto denom() const noexcept -> T { return m_denom; }
    };
 
-   // Operators
+   // Multiplication with integer
    template<std::integral ratio_value_type, std::integral other_type>
    [[nodiscard]] constexpr auto operator*(const ratio<ratio_value_type>& ratio, const other_type other) -> other_type;
    template<std::integral ratio_value_type, std::integral other_type>
    [[nodiscard]] constexpr auto operator*(const other_type other, const ratio<ratio_value_type>& ratio) -> other_type;
+
+   // Multiplication with floating points
+   template<std::integral ratio_value_type, std::floating_point other_type>
+   [[nodiscard]] constexpr auto operator*(const ratio<ratio_value_type>& ratio, const other_type other) -> other_type;
+   template<std::integral ratio_value_type, std::floating_point other_type>
+   [[nodiscard]] constexpr auto operator*(const other_type other, const ratio<ratio_value_type>& ratio) -> other_type;
+
+   // Multiplication between ratios
    template<std::integral ratio_value_type>
    [[nodiscard]] constexpr auto operator*(const ratio<ratio_value_type>& a, const ratio<ratio_value_type>& b) -> ratio<ratio_value_type>;
 
@@ -60,9 +65,9 @@ namespace rat
    [[nodiscard]] constexpr auto operator==(const ratio<ratio_value_type>& a, const ratio<ratio_value_type>& b) -> bool;
 
    // CDAT
-   ratio()->ratio<int>;
+   ratio() -> ratio<int>;
    template<std::intmax_t num, std::intmax_t denom>
-   ratio(const std::ratio<num, denom>)->ratio<std::intmax_t>;
+   ratio(const std::ratio<num, denom>) -> ratio<std::intmax_t>;
 }
 
 
@@ -98,5 +103,28 @@ constexpr auto rat::operator*(
 template<std::integral ratio_value_type>
 constexpr auto rat::operator==(const ratio<ratio_value_type>& a, const ratio<ratio_value_type>& b) -> bool
 {
-   return a.get_ratio<double>() == b.get_ratio<double>(); // TODO: this is awful
+   return a.num() == b.num() && b.denom() == b.denom();
+}
+
+
+
+template<std::integral ratio_value_type, std::floating_point other_type>
+constexpr auto rat::operator*(const ratio<ratio_value_type>& ratio, const other_type other) -> other_type
+{
+   return ratio.get_fp<other_type>() * other;
+}
+
+
+template<std::integral ratio_value_type, std::floating_point other_type>
+constexpr auto rat::operator*(const other_type other, const ratio<ratio_value_type>& ratio) -> other_type
+{
+   return ratio * other;
+}
+
+
+template<std::integral value_type>
+template<std::floating_point T>
+constexpr auto rat::ratio<value_type>::get_fp() const -> T
+{
+   return static_cast<T>(m_num) / static_cast<T>(m_denom);
 }
