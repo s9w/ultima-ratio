@@ -22,8 +22,8 @@ namespace rat
 
       constexpr explicit ratio() = default;
       constexpr explicit ratio(const T num, const T denom)
-         : m_num(num/std::gcd(num, denom))
-         , m_denom(denom/std::gcd(num, denom))
+         : m_num(num / std::gcd(num, denom))
+         , m_denom(denom / std::gcd(num, denom))
       {
          if (denom == static_cast<T>(0))
          {
@@ -40,8 +40,8 @@ namespace rat
          : ratio(num, denom)
       {}
 
-      template<std::floating_point T>
-      [[nodiscard]] constexpr auto get_fp() const->T;
+      template<std::floating_point fp_type>
+      [[nodiscard]] constexpr auto get_fp() const -> fp_type;
 
       [[nodiscard]] constexpr auto num() const noexcept -> T { return m_num; }
       [[nodiscard]] constexpr auto denom() const noexcept -> T { return m_denom; }
@@ -113,7 +113,7 @@ constexpr auto rat::operator==(const ratio<ratio_value_type>& a, const ratio<rat
 template<std::integral ratio_value_type, std::floating_point other_type>
 constexpr auto rat::operator*(const ratio<ratio_value_type>& ratio, const other_type other) -> other_type
 {
-   return ratio.get_fp<other_type>() * other;
+   return ratio.template get_fp<other_type>() * other;
 }
 
 
@@ -124,9 +124,9 @@ constexpr auto rat::operator*(const other_type other, const ratio<ratio_value_ty
 }
 
 
-template<std::integral value_type>
-template<std::floating_point T>
-constexpr auto rat::ratio<value_type>::get_fp() const -> T
+template<std::integral T>
+template<std::floating_point fp_type>
+constexpr auto rat::ratio<T>::get_fp() const -> fp_type
 {
-   return static_cast<T>(m_num) / static_cast<T>(m_denom);
+   return static_cast<fp_type>(m_num) / static_cast<fp_type>(m_denom);
 }
