@@ -7,6 +7,7 @@ template<std::integral T>
 using int_comparable_ratio = ratio<T, make_int_comparable>;
 static_assert(int_comparable_ratio<int>::is_int_comparable);
 static_assert(int_comparable_ratio(2, 1) == 2);
+static_assert(int_comparable_ratio(4, 2) == 2);
 static_assert(2 == int_comparable_ratio(2, 1));
 
 // Comparison between ratios of different type

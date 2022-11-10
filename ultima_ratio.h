@@ -212,7 +212,8 @@ namespace ultima_ratio
    requires(ratio_type::is_int_comparable)
    [[nodiscard]] constexpr auto operator==(const ratio_type& left, const other_type right) -> bool
    {
-      return left.denom() == static_cast<typename ratio_type::value_type>(1) && left.num() == right;
+      // A/B == C  <=> A == B * C
+      return left.num() == left.denom() * right;
    }
 
 
