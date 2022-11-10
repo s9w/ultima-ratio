@@ -4,14 +4,14 @@ using namespace ultima_ratio;
 
 // Comparison with integer
 template<std::integral T>
-using int_comparable_ratio = ratio<T, int_comparable>;
+using int_comparable_ratio = ratio<T, make_int_comparable>;
 static_assert(int_comparable_ratio<int>::is_int_comparable);
 static_assert(int_comparable_ratio(2, 1) == 2);
 static_assert(2 == int_comparable_ratio(2, 1));
 
 // Comparison between ratios of different type
 template<std::integral T>
-using hetero_comparable_ratio = ratio<T, hetero_comparable>;
+using hetero_comparable_ratio = ratio<T, make_hetero_comparable>;
 static_assert(hetero_comparable_ratio<int>::is_hetero_comparable);
 static_assert(hetero_comparable_ratio(1, 1) == hetero_comparable_ratio(1ul, 1ul));
 
@@ -30,9 +30,13 @@ static_assert(std::same_as<typename decltype(ratio{ 1ul, 1ul })::value_type, uns
 // get_fp()
 static_assert(ratio{ 1, 2 }.get_fp<float>() == 0.5f);
 
-// Make sure elements are minimal
-static_assert(ratio{ 8,2 }.num() == 4);
-static_assert(ratio{ 8,2 }.denom() == 1);
+// Make sure elements are minimal when requested
+static_assert(ratio{ 8,2 }.num() == 8);
+static_assert(ratio{ 8,2 }.denom() == 2);
+template<std::integral T>
+using normalized_ratio = ratio<T, make_normalized>;
+static_assert(normalized_ratio{ 8,2 }.num() == 4);
+static_assert(normalized_ratio{ 8,2 }.denom() == 1);
 
 // Multiplication with int -> int
 static_assert(ratio{ 2,1 } *5 == 10);

@@ -12,16 +12,25 @@ namespace ultima_ratio
    {
       template<typename T, typename ... types>
       concept t_in_types = (std::same_as<T, types> || ...);
+
+      struct normalize_tag{};
+      struct dont_normalize_tag{};
+      template<bool do_normalize>
+      inline static constexpr auto init_tag_v = std::conditional_t<do_normalize, normalize_tag, dont_normalize_tag>{};
    }
 
-   struct int_comparable;
-   struct hetero_comparable;
+   // Modifiers
+   struct make_int_comparable{};
+   struct make_hetero_comparable{};
+   struct make_normalized{};
 
+   // Exception types
    struct ur_exception : std::runtime_error { using runtime_error::runtime_error; };
    struct ur_ex_denom_zero : ur_exception { using ur_exception::ur_exception; };
    struct ur_ex_negative : ur_exception { using ur_exception::ur_exception; };
    struct ur_ex_remainder : ur_exception { using ur_exception::ur_exception; };
 
+   // The main star
    template<std::integral T, typename ... modifiers>
    struct ratio
    {
@@ -31,14 +40,14 @@ namespace ultima_ratio
 
    public:
       using value_type = T;
-      constexpr static inline bool is_int_comparable = details::t_in_types<int_comparable, modifiers...>;
-      constexpr static inline bool is_hetero_comparable = details::t_in_types<hetero_comparable, modifiers...>;
+      constexpr static inline bool is_int_comparable = details::t_in_types<make_int_comparable, modifiers...>;
+      constexpr static inline bool is_hetero_comparable = details::t_in_types<make_hetero_comparable, modifiers...>;
+      constexpr static inline bool is_normalized = details::t_in_types<make_normalized, modifiers...>;
 
       constexpr explicit ratio() = default;
 
       constexpr explicit ratio(const T num, const T denom)
-         : m_num(num / std::gcd(num, denom))
-         , m_denom(denom / std::gcd(num, denom))
+         : ratio(details::init_tag_v<is_normalized>, num, denom)
       {
          if (denom == static_cast<T>(0))
          {
@@ -63,9 +72,18 @@ namespace ultima_ratio
          return static_cast<fp_type>(m_num) / static_cast<fp_type>(m_denom);
       }
 
-
       [[nodiscard]] constexpr auto num() const noexcept -> T { return m_num; }
       [[nodiscard]] constexpr auto denom() const noexcept -> T { return m_denom; }
+
+   private:
+      constexpr explicit ratio(details::normalize_tag, const T num, const T denom)
+         : m_num(num / std::gcd(num, denom))
+         , m_denom(denom / std::gcd(num, denom))
+      { }
+      constexpr explicit ratio(details::dont_normalize_tag, const T num, const T denom)
+         : m_num(num)
+         , m_denom(denom)
+      { }
    };
 
 
@@ -139,7 +157,7 @@ namespace ultima_ratio
    template<ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator==(const ratio_type& left, const ratio_type& right) -> bool
    {
-      return left.num() == right.num() && right.denom() == right.denom();
+      return left.num() == right.num() && left.denom() == right.denom();
    }
    template<ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator<(const ratio_type& left, const ratio_type& right) -> bool
