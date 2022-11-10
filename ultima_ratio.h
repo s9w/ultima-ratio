@@ -8,16 +8,19 @@
 
 namespace ultima_ratio
 {
-   template<typename T, typename ... types>
-   concept t_in_types = (std::same_as<T, types> || ...); // TODO in detail ns
+   namespace details
+   {
+      template<typename T, typename ... types>
+      concept t_in_types = (std::same_as<T, types> || ...);
+   }
 
    struct int_comparable;
    struct hetero_comparable;
 
    struct ur_exception : std::runtime_error { using runtime_error::runtime_error; };
-   struct ur_ex_denom_zero : ur_exception { using ur_exception::ur_exception;   };
-   struct ur_ex_negative : ur_exception { using ur_exception::ur_exception;   };
-   struct ur_ex_remainder : ur_exception { using ur_exception::ur_exception;   };
+   struct ur_ex_denom_zero : ur_exception { using ur_exception::ur_exception; };
+   struct ur_ex_negative : ur_exception { using ur_exception::ur_exception; };
+   struct ur_ex_remainder : ur_exception { using ur_exception::ur_exception; };
 
    template<std::integral T, typename ... modifiers>
    struct ratio
@@ -28,8 +31,8 @@ namespace ultima_ratio
 
    public:
       using value_type = T;
-      constexpr static inline bool is_int_comparable = t_in_types<int_comparable, modifiers...>;
-      constexpr static inline bool is_hetero_comparable = t_in_types<hetero_comparable, modifiers...>;
+      constexpr static inline bool is_int_comparable = details::t_in_types<int_comparable, modifiers...>;
+      constexpr static inline bool is_hetero_comparable = details::t_in_types<hetero_comparable, modifiers...>;
 
       constexpr explicit ratio() = default;
 
@@ -77,7 +80,7 @@ namespace ultima_ratio
 
 
    // Multiplication with integer
-   template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
+   template<ratio_c ratio_type, std::integral other_type>
    [[nodiscard]] constexpr auto operator*(const ratio_type& ratio, const other_type other) -> other_type
    {
       if ((other * ratio.num()) % ratio.denom() != 0)
@@ -86,15 +89,37 @@ namespace ultima_ratio
       }
       return other * ratio.num() / ratio.denom();
    }
-   template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
+   template<ratio_c ratio_type, std::integral other_type>
    [[nodiscard]] constexpr auto operator*(const other_type other, const ratio_type& ratio) -> other_type
    {
       return ratio * other;
    }
 
 
+   // Multiplication with floating points
+   template<ratio_c ratio_type, std::floating_point other_type>
+   [[nodiscard]] constexpr auto operator*(const ratio_type& ratio, const other_type other) -> other_type
+   {
+      return ratio.template get_fp<other_type>() * other;
+   }
+   template<ratio_c ratio_type, std::floating_point other_type>
+   [[nodiscard]] constexpr auto operator*(const other_type other, const ratio_type& ratio) -> other_type
+   {
+      return ratio * other;
+   }
+
+
+   // Multiplication between ratios
+   template<ratio_c ratio_type>
+   [[nodiscard]] constexpr auto operator*(const ratio_type& a, const ratio_type& b) -> ratio_type
+   {
+      return ratio(a.num() * b.num(), a.denom() * b.denom());
+   }
+
+
+
    // Division with integer
-   template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
+   template<ratio_c ratio_type, std::integral other_type>
    [[nodiscard]] constexpr auto operator/(const other_type other, const ratio_type& ratio) -> other_type
    {
       if ((other * ratio.denom()) % ratio.num() != 0)
@@ -103,41 +128,20 @@ namespace ultima_ratio
       }
       return other * ratio.denom() / ratio.num();
    }
-   template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
+   template<ratio_c ratio_type, std::integral other_type>
    [[nodiscard]] constexpr auto operator/(const ratio_type& ratio, const other_type other) -> other_type
    {
       return other / ratio;
    }
 
 
-   // Multiplication with floating points
-   template<ultima_ratio::ratio_c ratio_type, std::floating_point other_type>
-   [[nodiscard]] constexpr auto operator*(const ratio_type& ratio, const other_type other) -> other_type
-   {
-      return ratio.template get_fp<other_type>() * other;
-   }
-   template<ultima_ratio::ratio_c ratio_type, std::floating_point other_type>
-   [[nodiscard]] constexpr auto operator*(const other_type other, const ratio_type& ratio) -> other_type
-   {
-      return ratio * other;
-   }
-
-
-   // Multiplication between ratios
-   template<ultima_ratio::ratio_c ratio_type>
-   [[nodiscard]] constexpr auto operator*(const ratio_type& a, const ratio_type& b) -> ratio_type
-   {
-      return ratio(a.num() * b.num(), a.denom() * b.denom());
-   }
-
-
    // Comparison between ratios
-   template<ultima_ratio::ratio_c ratio_type>
+   template<ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator==(const ratio_type& left, const ratio_type& right) -> bool
    {
       return left.num() == right.num() && right.denom() == right.denom();
    }
-   template<ultima_ratio::ratio_c ratio_type>
+   template<ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator<(const ratio_type& left, const ratio_type& right) -> bool
    {
       const auto lcm = std::lcm(left.denom(), right.denom());
@@ -145,17 +149,17 @@ namespace ultima_ratio
       const auto right_normalized = right.num() * lcm / right.denom();
       return left_normalized < right_normalized;
    }
-   template<ultima_ratio::ratio_c ratio_type>
+   template<ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator>(const ratio_type& left, const ratio_type& right) -> bool
    {
       return right < left;
    }
-   template<ultima_ratio::ratio_c ratio_type>
+   template<ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator<=(const ratio_type& left, const ratio_type& right) -> bool
    {
       return left < right || left == right;
    }
-   template<ultima_ratio::ratio_c ratio_type>
+   template<ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator>=(const ratio_type& left, const ratio_type& right) -> bool
    {
       return left > right || left == right;
@@ -163,7 +167,7 @@ namespace ultima_ratio
 
 
    // Comparison between ratios of different type
-   template<ultima_ratio::ratio_c ratio_type_a, ultima_ratio::ratio_c ratio_type_b>
+   template<ratio_c ratio_type_a, ratio_c ratio_type_b>
    requires(ratio_type_a::is_hetero_comparable && ratio_type_b::is_hetero_comparable)
    [[nodiscard]] constexpr auto operator==(const ratio_type_a& a, const ratio_type_b& b) -> bool
    {
@@ -172,7 +176,7 @@ namespace ultima_ratio
 
 
    // Comparison with integer
-   template<ultima_ratio::ratio_c ratio_type, std::integral other_type>
+   template<ratio_c ratio_type, std::integral other_type>
    requires(ratio_type::is_int_comparable)
    [[nodiscard]] constexpr auto operator==(const ratio_type& a, const other_type other) -> bool
    {
@@ -184,6 +188,7 @@ namespace ultima_ratio
    ratio() -> ratio<int>;
    template<std::intmax_t num, std::intmax_t denom>
    ratio(const std::ratio<num, denom>) -> ratio<std::intmax_t>;
-}
+
+} // namespace ultima_ratio
 
 // todo: construction from fp types if possible
