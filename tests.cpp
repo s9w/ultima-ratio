@@ -80,6 +80,12 @@ static_assert(std::is_convertible_v<ratio<int, make_implicit_convertible>, doubl
 static_assert(accept_float(ratio<int, make_implicit_convertible>(1,2)) == 0.5f);
 static_assert(accept_double(ratio<int, make_implicit_convertible>(1,2)) == 0.5);
 
+// Zero tests
+static_assert(ratio(0, 1).num() == 0);
+static_assert(ratio(0, 1).get_fp<float>() == 0.0f);
+static_assert(ratio(0, 3).denom() == 3);
+static_assert(normalized_ratio(0, 3).denom() == 1);
+
 
 template<typename ex_type, typename fun_type>
 auto expect_throw(const fun_type& fun) -> void

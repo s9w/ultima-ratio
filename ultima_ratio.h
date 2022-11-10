@@ -223,5 +223,3 @@ namespace ultima_ratio
 
 } // namespace ultima_ratio
 
-// todo: construction from fp types if possible
-// todo: test zero cases
