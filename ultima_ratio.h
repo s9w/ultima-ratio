@@ -112,57 +112,57 @@ namespace ultima_ratio
 
    // Multiplication with integer
    template<ratio_c ratio_type, std::integral other_type>
-   [[nodiscard]] constexpr auto operator*(const ratio_type& ratio, const other_type other) -> other_type
+   [[nodiscard]] constexpr auto operator*(const ratio_type& left, const other_type right) -> other_type
    {
-      if ((other * ratio.num()) % ratio.denom() != 0)
+      if ((right * left.num()) % left.denom() != 0)
       {
          throw ur_ex_remainder{ "Multiplication with integer leaves a remainder" };
       }
-      return other * ratio.num() / ratio.denom();
+      return right * left.num() / left.denom();
    }
    template<ratio_c ratio_type, std::integral other_type>
-   [[nodiscard]] constexpr auto operator*(const other_type other, const ratio_type& ratio) -> other_type
+   [[nodiscard]] constexpr auto operator*(const other_type left, const ratio_type& right) -> other_type
    {
-      return ratio * other;
+      return right * left;
    }
 
 
    // Multiplication with floating points
    template<ratio_c ratio_type, std::floating_point other_type>
-   [[nodiscard]] constexpr auto operator*(const ratio_type& ratio, const other_type other) -> other_type
+   [[nodiscard]] constexpr auto operator*(const ratio_type& left, const other_type right) -> other_type
    {
-      return ratio.template get_fp<other_type>() * other;
+      return left.template get_fp<other_type>() * right;
    }
    template<ratio_c ratio_type, std::floating_point other_type>
-   [[nodiscard]] constexpr auto operator*(const other_type other, const ratio_type& ratio) -> other_type
+   [[nodiscard]] constexpr auto operator*(const other_type left, const ratio_type& right) -> other_type
    {
-      return ratio * other;
+      return right * left;
    }
 
 
    // Multiplication between ratios
    template<ratio_c ratio_type>
-   [[nodiscard]] constexpr auto operator*(const ratio_type& a, const ratio_type& b) -> ratio_type
+   [[nodiscard]] constexpr auto operator*(const ratio_type& left, const ratio_type& right) -> ratio_type
    {
-      return ratio(a.num() * b.num(), a.denom() * b.denom());
+      return ratio(left.num() * right.num(), left.denom() * right.denom());
    }
 
 
 
    // Division with integer
    template<ratio_c ratio_type, std::integral other_type>
-   [[nodiscard]] constexpr auto operator/(const other_type other, const ratio_type& ratio) -> other_type
+   [[nodiscard]] constexpr auto operator/(const other_type left, const ratio_type& right) -> other_type
    {
-      if ((other * ratio.denom()) % ratio.num() != 0)
+      if ((left * right.denom()) % right.num() != 0)
       {
          throw ur_ex_remainder{ "Integer division leaves a remainder" };
       }
-      return other * ratio.denom() / ratio.num();
+      return left * right.denom() / right.num();
    }
    template<ratio_c ratio_type, std::integral other_type>
-   [[nodiscard]] constexpr auto operator/(const ratio_type& ratio, const other_type other) -> other_type
+   [[nodiscard]] constexpr auto operator/(const ratio_type& left, const other_type right) -> other_type
    {
-      return other / ratio;
+      return right / left;
    }
 
 
@@ -200,18 +200,19 @@ namespace ultima_ratio
    // Comparison between ratios of different type
    template<ratio_c ratio_type_a, ratio_c ratio_type_b>
    requires(ratio_type_a::is_hetero_comparable && ratio_type_b::is_hetero_comparable)
-   [[nodiscard]] constexpr auto operator==(const ratio_type_a& a, const ratio_type_b& b) -> bool
+   [[nodiscard]] constexpr auto operator==(const ratio_type_a& left, const ratio_type_b& right) -> bool
    {
-      return static_cast<int>(a.num()) == static_cast<int>(b.num()) && static_cast<int>(b.denom()) == static_cast<int>(b.denom());
+      return static_cast<int>(left.num()) == static_cast<int>(right.num()) &&
+         static_cast<int>(right.denom()) == static_cast<int>(right.denom());
    }
 
 
    // Comparison with integer
    template<ratio_c ratio_type, std::integral other_type>
    requires(ratio_type::is_int_comparable)
-   [[nodiscard]] constexpr auto operator==(const ratio_type& a, const other_type other) -> bool
+   [[nodiscard]] constexpr auto operator==(const ratio_type& left, const other_type right) -> bool
    {
-      return a.denom() == static_cast<ratio_type::value_type>(1) && a.num() == other;
+      return left.denom() == static_cast<typename ratio_type::value_type>(1) && left.num() == right;
    }
 
 
