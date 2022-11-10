@@ -140,6 +140,19 @@ namespace ultima_ratio
    }
 
 
+   // Division with floating points
+   template<ratio_c ratio_type, std::floating_point other_type>
+   [[nodiscard]] constexpr auto operator/(const ratio_type& left, const other_type right) -> other_type
+   {
+      return left.template get_fp<other_type>() / right;
+   }
+   template<ratio_c ratio_type, std::floating_point other_type>
+   [[nodiscard]] constexpr auto operator/(const other_type left, const ratio_type& right) -> other_type
+   {
+      return left / right.template get_fp<other_type>();
+   }
+
+
    // Multiplication between ratios
    template<ratio_c ratio_type>
    [[nodiscard]] constexpr auto operator*(const ratio_type& left, const ratio_type& right) -> ratio_type
@@ -224,3 +237,5 @@ namespace ultima_ratio
 
 } // namespace ultima_ratio
 
+// TODO: tiny types edge cases. maybe special paths for one- components?
+// TODO: godbolt conformance check

@@ -107,6 +107,26 @@ auto expect_throw(const fun_type& fun) -> void
 
 int main()
 {
+   constexpr ratio half{1, 2};
+
+   // The type is immutable so you can only _read_ the numerator and denominator
+   constexpr auto numerator = half.num();
+   constexpr auto denominator = half.denom();
+
+   // Multiplication and division with integers, both ways. Returns integer type
+   static_assert(half * 4 == 2);
+   static_assert(4 * half == 2);
+   static_assert(4 / half == 8);
+   static_assert(ratio(3,1) / 3 == 1);
+
+   // But: These operations don't always go without a remainder. This is caught and an exception thrown!
+   try { ratio{3,2} * 1; }
+   catch(const ur_ex_remainder&){ }
+
+   // Multiplication and division with floating point values works as expected
+   static_assert(half * 2.0f == 1.0f);
+   static_assert(2.0 / half == 4.0);
+
    expect_throw<ur_ex_remainder>([]() { const auto x = ratio{ 3,2 } *1; });
    expect_throw<ur_ex_remainder>([]() { const auto x = 1 * ratio{ 3,2 }; });
    expect_throw<ur_ex_remainder>([]() { const auto x = 4 / ratio{ 3,2 }; });
