@@ -64,6 +64,22 @@ static_assert(ratio(1,3) >= ratio(1,3));
 static_assert(ratio(1,4) < ratio(1,4) == false);
 static_assert(ratio(1,4) > ratio(1,4) == false);
 
+// Implicit conversion to floating point types
+constexpr auto accept_float(const float value) -> float
+{
+   return value;
+}
+constexpr auto accept_double(const double value) -> double
+{
+   return value;
+}
+static_assert(std::is_convertible_v<ratio<int>, float> == false);
+static_assert(std::is_convertible_v<ratio<int>, double> == false);
+static_assert(std::is_convertible_v<ratio<int, make_implicit_convertible>, float> == true);
+static_assert(std::is_convertible_v<ratio<int, make_implicit_convertible>, double> == true);
+static_assert(accept_float(ratio<int, make_implicit_convertible>(1,2)) == 0.5f);
+static_assert(accept_double(ratio<int, make_implicit_convertible>(1,2)) == 0.5);
+
 
 template<typename ex_type, typename fun_type>
 auto expect_throw(const fun_type& fun) -> void

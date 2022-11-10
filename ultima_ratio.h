@@ -23,6 +23,7 @@ namespace ultima_ratio
    struct make_int_comparable{};
    struct make_hetero_comparable{};
    struct make_normalized{};
+   struct make_implicit_convertible{};
 
    // Exception types
    struct ur_exception : std::runtime_error { using runtime_error::runtime_error; };
@@ -43,6 +44,7 @@ namespace ultima_ratio
       constexpr static inline bool is_int_comparable = details::t_in_types<make_int_comparable, modifiers...>;
       constexpr static inline bool is_hetero_comparable = details::t_in_types<make_hetero_comparable, modifiers...>;
       constexpr static inline bool is_normalized = details::t_in_types<make_normalized, modifiers...>;
+      constexpr static inline bool is_implicit_convertible = details::t_in_types<make_implicit_convertible, modifiers...>;
 
       constexpr explicit ratio() = default;
 
@@ -66,6 +68,17 @@ namespace ultima_ratio
       {}
 
 
+      // Implicit conversion operators
+      constexpr operator float() const requires(is_implicit_convertible)
+      {
+         return this->get_fp<float>();
+      }
+      constexpr operator double() const requires(is_implicit_convertible)
+      {
+         return this->get_fp<double>();
+      }
+
+
       template<std::floating_point fp_type>
       [[nodiscard]] constexpr auto get_fp() const -> fp_type // TODO: noexcept
       {
@@ -86,7 +99,7 @@ namespace ultima_ratio
       { }
    };
 
-
+   // Trait/concept for ratio
    template<typename T>
    struct is_ratio : std::false_type {};
    template<std::integral T, typename ...Args>
@@ -210,3 +223,4 @@ namespace ultima_ratio
 } // namespace ultima_ratio
 
 // todo: construction from fp types if possible
+// todo: test zero cases
