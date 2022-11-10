@@ -1,5 +1,5 @@
 # Ultima ratio
-You have a simple problem: 
+An origin story: You have a simple problem:
 ```c++
 constexpr int base_value = 4;
 int factor = 2;
@@ -8,8 +8,10 @@ int value = factor * base_value;
 
 At some point you want the factor to be <1, maybe 1/2. Changing from multiplication to division is correct, but annoying. You could use a float and cast your way to the result. But you know it's dangerous as that only works for a small subset of values.
 
-*Surely* the committee solved this everyday issue gracefully. Leave confused after coming across [`std::ratio`](https://en.cppreference.com/w/cpp/numeric/ratio/ratio).
-You decide to take matters into your own hands and write your own `ratio` class. You spend some time thinking about edge cases, convenience functions, making everything `constexpr`, comparisons, error handling all all those goodies. It's the **ultima ratio**.
+*Surely* the committee solved this everyday issue gracefully. You leave confused after coming across [`std::ratio`](https://en.cppreference.com/w/cpp/numeric/ratio/ratio).
+You decide to take matters into your own hands and write your own `ratio` class. You spend some time thinking about edge cases, convenience functions, making everything `constexpr`, comparisons, error handling all all those goodies.
+
+It's the **ultima ratio**.
 
 ## Details
 [`ultima_ratio.h`](ultima_ratio.h) is a single-header C++20 library. It provides the type `ratio`. **All** functions are `constexpr`.
@@ -23,7 +25,7 @@ static_assert(std::same_as<decltype(half)::value_type, int>);
 constexpr auto numerator = half.num();
 constexpr auto denominator = half.denom();
 
-// If you really want, you can convert it to a floating point type
+// If you really want, you can get a floating point representation
 static_assert(half.get_fp<double>() == 0.5);
 ```
 
@@ -88,6 +90,8 @@ namespace my_namespace
    using ratio = ultima_ratio::ratio<T, make_reduced, make_int_comparable, make_fp_comparable>;
 }
 ```
+
+Oh and you can also construct a `ratio` from a `std::ratio`. Just be aware that its integer type is carried over, which is a `std::intmax_t`.
 
 ## Error handling
 There's a couple of things that get caught:

@@ -89,6 +89,9 @@ namespace tests
    static_assert(ratio(0, 3).denom() == 3);
    static_assert(normalized_ratio(0, 3).denom() == 1);
 
+   // std::ratio
+   static_assert(ratio(std::ratio<8,4>{}) == ratio<std::intmax_t>(8, 4));
+
 } // namespace tests{}
 
 namespace readme_code
@@ -103,7 +106,7 @@ namespace readme_code
       constexpr auto numerator = half.num();
       constexpr auto denominator = half.denom();
 
-      // If you really want, you can convert it to a floating point type
+      // If you really want, you can get a floating point representation
       static_assert(half.get_fp<double>() == 0.5);
    }
 
@@ -179,14 +182,10 @@ template<typename ex_type, typename fun_type>
 auto expect_throw(const fun_type& fun) -> void
 {
    bool has_thrown = false;
-   try
-   {
-      fun();
-   }
-   catch (const ex_type&)
-   {
-      has_thrown = true;
-   }
+
+   try { fun(); }
+   catch (const ex_type&){ has_thrown = true; }
+
    if (has_thrown == false)
       std::terminate();
 }

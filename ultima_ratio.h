@@ -247,7 +247,7 @@ namespace ultima_ratio
    }
    template<ratio_c ratio_type, std::floating_point other_type>
    requires(ratio_type::is_fp_comparable)
-      [[nodiscard]] constexpr auto operator<=(const ratio_type& left, const other_type right) -> bool
+   [[nodiscard]] constexpr auto operator<=(const ratio_type& left, const other_type right) -> bool
    {
       return left.get_fp<other_type>() <= right;
    }
