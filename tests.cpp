@@ -37,7 +37,7 @@ namespace tests
    static_assert(ratio{ 8,2 }.num() == 8);
    static_assert(ratio{ 8,2 }.denom() == 2);
    template<std::integral T>
-   using normalized_ratio = ratio<T, make_normalized>;
+   using normalized_ratio = ratio<T, make_reduced>;
    static_assert(normalized_ratio{ 8,2 }.num() == 4);
    static_assert(normalized_ratio{ 8,2 }.denom() == 1);
 
@@ -89,7 +89,7 @@ namespace tests
    static_assert(ratio(0, 3).denom() == 3);
    static_assert(normalized_ratio(0, 3).denom() == 1);
 
-}
+} // namespace tests{}
 
 namespace readme_code
 {
@@ -119,7 +119,7 @@ namespace readme_code
 
       // But: These operations don't always go without a remainder. This is caught and an exception thrown!
       try { auto x = ratio{ 3,2 } * 1; }
-      catch (const ur_ex_remainder&) {}
+      catch (const remainder_error&) {}
 
       // Multiplication and division with floating point values works as expected
       static_assert(half * 2.0f == 1.0f);
@@ -129,28 +129,51 @@ namespace readme_code
       static_assert(ratio(4, 3) * ratio(1, 2) == ratio(4, 6));
    }
 
-   auto comparisons() -> void
+
+   namespace tags
    {
-      
+      // By default, comparisons only work between two ratio objects of the same value_type
+      static_assert(ratio(3, 2) > ratio(2, 2));
+
+      // If you want to compare ratios of different value_type, go ham:
+      template<std::integral T>
+      using hetero_comparable_ratio = ratio<T, make_hetero_comparable>;
+      static_assert(hetero_comparable_ratio(1, 1) == hetero_comparable_ratio(1ul, 1ul));
+
+      // Use make_int_comparable to allow equality comparison with ints
+      template<std::integral T>
+      using int_comparable_ratio = ratio<T, make_int_comparable>;
+      static_assert(int_comparable_ratio(4, 2) == 2);
+
+      // Use make_fp_comparable to allow comparisons with floating point types
+      template<std::integral T>
+      using fp_comparable_ratio = ratio<T, make_fp_comparable>;
+      static_assert(fp_comparable_ratio(3, 6) == 0.5);
+      static_assert(fp_comparable_ratio(1, 3) < 0.5);
+      static_assert(fp_comparable_ratio(1, 2) <= 0.5);
+      static_assert(0.5 < fp_comparable_ratio(7, 3));
+      static_assert(0.5 <= fp_comparable_ratio(7, 3));
+
+      // Numerator and denominator can be reduced if desired:
+      template<std::integral T>
+      using reduced_ratio = ratio<T, make_reduced>;
+      static_assert(reduced_ratio(4, 2).num() == 2 && reduced_ratio(4, 2).denom() == 1);
+
+      // Ratios can also be made implicitly convertible to floating point types
+      template<std::integral T>
+      using converting_ratio = ratio<T, make_implicit_convertible>;
+      const float f = converting_ratio(1, 2);
+
+      // You can mix all these properties to construct your dream type
+      namespace my_namespace
+      {
+         template<std::integral T>
+         using ratio = ultima_ratio::ratio<T, make_reduced, make_int_comparable, make_fp_comparable>;
+      }
    }
 
-   // By default, comparisons only work between two ratio objects of the same value_type
-   static_assert(ratio(3, 2) > ratio(2, 2));
+} // namespace readme_code
 
-   // Use make_int_comparable to allow equality comparison with ints
-   template<std::integral T>
-   using int_comparable_ratio = ratio<T, make_int_comparable>;
-   static_assert(int_comparable_ratio(4,2) == 2);
-
-   // Use make_fp_comparable to allow comparisons with floating point types
-   template<std::integral T>
-   using fp_comparable_ratio = ratio<T, make_fp_comparable>;
-   static_assert(fp_comparable_ratio(3, 6) == 0.5);
-   static_assert(fp_comparable_ratio(1,3) < 0.5);
-   static_assert(fp_comparable_ratio(1,2) <= 0.5);
-   static_assert(0.5 < fp_comparable_ratio(7,3));
-   static_assert(0.5 <= fp_comparable_ratio(7,3));
-}
 
 template<typename ex_type, typename fun_type>
 auto expect_throw(const fun_type& fun) -> void
@@ -171,10 +194,10 @@ auto expect_throw(const fun_type& fun) -> void
 
 int main()
 {
-   expect_throw<ur_ex_remainder>([]() { const auto x = ratio{ 3,2 } *1; });
-   expect_throw<ur_ex_remainder>([]() { const auto x = 1 * ratio{ 3,2 }; });
-   expect_throw<ur_ex_remainder>([]() { const auto x = 4 / ratio{ 3,2 }; });
-   expect_throw<ur_ex_remainder>([]() { const auto x = ratio{ 4,2 } / 3; });
+   expect_throw<remainder_error>([]() { const auto x = ratio{ 3,2 } *1; });
+   expect_throw<remainder_error>([]() { const auto x = 1 * ratio{ 3,2 }; });
+   expect_throw<remainder_error>([]() { const auto x = 4 / ratio{ 3,2 }; });
+   expect_throw<remainder_error>([]() { const auto x = ratio{ 4,2 } / 3; });
 
    return 0;
 }

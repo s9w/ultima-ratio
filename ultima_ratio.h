@@ -13,24 +13,24 @@ namespace ultima_ratio
       template<typename T, typename ... types>
       concept t_in_types = (std::same_as<T, types> || ...);
 
-      struct normalize_tag{};
-      struct dont_normalize_tag{};
+      struct reduce_tag{};
+      struct dont_reduce_tag{};
       template<bool do_normalize>
-      inline static constexpr auto init_tag_v = std::conditional_t<do_normalize, normalize_tag, dont_normalize_tag>{};
+      inline static constexpr auto init_tag_v = std::conditional_t<do_normalize, reduce_tag, dont_reduce_tag>{};
    }
 
    // Modifiers
    struct make_int_comparable{};
    struct make_fp_comparable {};
    struct make_hetero_comparable{};
-   struct make_normalized{};
+   struct make_reduced{};
    struct make_implicit_convertible{};
 
    // Exception types
-   struct ur_exception : std::runtime_error { using runtime_error::runtime_error; };
-   struct ur_ex_denom_zero : ur_exception { using ur_exception::ur_exception; };
-   struct ur_ex_negative : ur_exception { using ur_exception::ur_exception; };
-   struct ur_ex_remainder : ur_exception { using ur_exception::ur_exception; };
+   struct error : std::runtime_error { using runtime_error::runtime_error; };
+   struct denom_zero_error : error { using error::error; };
+   struct negative_error : error { using error::error; };
+   struct remainder_error : error { using error::error; };
 
    // The main star
    template<std::integral T, typename ... modifiers>
@@ -45,21 +45,21 @@ namespace ultima_ratio
       constexpr static inline bool is_int_comparable = details::t_in_types<make_int_comparable, modifiers...>;
       constexpr static inline bool is_fp_comparable = details::t_in_types<make_fp_comparable, modifiers...>;
       constexpr static inline bool is_hetero_comparable = details::t_in_types<make_hetero_comparable, modifiers...>;
-      constexpr static inline bool is_normalized = details::t_in_types<make_normalized, modifiers...>;
+      constexpr static inline bool is_reduced = details::t_in_types<make_reduced, modifiers...>;
       constexpr static inline bool is_implicit_convertible = details::t_in_types<make_implicit_convertible, modifiers...>;
 
       constexpr explicit ratio() = default;
 
       constexpr explicit ratio(const T num, const T denom)
-         : ratio(details::init_tag_v<is_normalized>, num, denom)
+         : ratio(details::init_tag_v<is_reduced>, num, denom)
       {
          if (denom == static_cast<T>(0))
          {
-            throw ur_ex_denom_zero{"denominator is zero"};
+            throw denom_zero_error{"denominator is zero"};
          }
          if (num < static_cast<T>(0) || denom < static_cast<T>(0))
          {
-            throw ur_ex_negative{ "denominator is negative" };
+            throw negative_error{ "Fraction is negative" };
          }
       }
 
@@ -91,11 +91,11 @@ namespace ultima_ratio
       [[nodiscard]] constexpr auto denom() const noexcept -> T { return m_denom; }
 
    private:
-      constexpr explicit ratio(details::normalize_tag, const T num, const T denom)
+      constexpr explicit ratio(details::reduce_tag, const T num, const T denom)
          : m_num(num / std::gcd(num, denom))
          , m_denom(denom / std::gcd(num, denom))
       { }
-      constexpr explicit ratio(details::dont_normalize_tag, const T num, const T denom)
+      constexpr explicit ratio(details::dont_reduce_tag, const T num, const T denom)
          : m_num(num)
          , m_denom(denom)
       { }
@@ -118,7 +118,7 @@ namespace ultima_ratio
    {
       if ((right * left.num()) % left.denom() != 0)
       {
-         throw ur_ex_remainder{ "Multiplication with integer leaves a remainder" };
+         throw remainder_error{ "Multiplication with integer leaves a remainder" };
       }
       return right * left.num() / left.denom();
    }
@@ -170,7 +170,7 @@ namespace ultima_ratio
    {
       if ((left * right.denom()) % right.num() != 0)
       {
-         throw ur_ex_remainder{ "Integer division leaves a remainder" };
+         throw remainder_error{ "Integer division leaves a remainder" };
       }
       return left * right.denom() / right.num();
    }
