@@ -21,6 +21,7 @@ namespace ultima_ratio
 
    // Modifiers
    struct make_int_comparable{};
+   struct make_fp_comparable {};
    struct make_hetero_comparable{};
    struct make_normalized{};
    struct make_implicit_convertible{};
@@ -42,6 +43,7 @@ namespace ultima_ratio
    public:
       using value_type = T;
       constexpr static inline bool is_int_comparable = details::t_in_types<make_int_comparable, modifiers...>;
+      constexpr static inline bool is_fp_comparable = details::t_in_types<make_fp_comparable, modifiers...>;
       constexpr static inline bool is_hetero_comparable = details::t_in_types<make_hetero_comparable, modifiers...>;
       constexpr static inline bool is_normalized = details::t_in_types<make_normalized, modifiers...>;
       constexpr static inline bool is_implicit_convertible = details::t_in_types<make_implicit_convertible, modifiers...>;
@@ -227,6 +229,39 @@ namespace ultima_ratio
    {
       // A/B == C  <=> A == B * C
       return left.num() == left.denom() * right;
+   }
+
+
+   // Comparison with floating point types
+   template<ratio_c ratio_type, std::floating_point other_type>
+   requires(ratio_type::is_fp_comparable)
+   [[nodiscard]] constexpr auto operator==(const ratio_type& left, const other_type right) -> bool
+   {
+      return left.get_fp<other_type>() == right;
+   }
+   template<ratio_c ratio_type, std::floating_point other_type>
+   requires(ratio_type::is_fp_comparable)
+   [[nodiscard]] constexpr auto operator<(const ratio_type& left, const other_type right) -> bool
+   {
+      return left.get_fp<other_type>() < right;
+   }
+   template<ratio_c ratio_type, std::floating_point other_type>
+   requires(ratio_type::is_fp_comparable)
+      [[nodiscard]] constexpr auto operator<=(const ratio_type& left, const other_type right) -> bool
+   {
+      return left.get_fp<other_type>() <= right;
+   }
+   template<ratio_c ratio_type, std::floating_point other_type>
+   requires(ratio_type::is_fp_comparable)
+   [[nodiscard]] constexpr auto operator<(const other_type left, const ratio_type& right) -> bool
+   {
+      return left < right.get_fp<other_type>();
+   }
+   template<ratio_c ratio_type, std::floating_point other_type>
+   requires(ratio_type::is_fp_comparable)
+   [[nodiscard]] constexpr auto operator<=(const other_type left, const ratio_type& right) -> bool
+   {
+      return left <= right.get_fp<other_type>();
    }
 
 
