@@ -133,9 +133,32 @@ namespace ultima_ratio
 
    // Comparison between ratios
    template<ultima_ratio::ratio_c ratio_type>
-   [[nodiscard]] constexpr auto operator==(const ratio_type& a, const ratio_type& b) -> bool
+   [[nodiscard]] constexpr auto operator==(const ratio_type& left, const ratio_type& right) -> bool
    {
-      return a.num() == b.num() && b.denom() == b.denom();
+      return left.num() == right.num() && right.denom() == right.denom();
+   }
+   template<ultima_ratio::ratio_c ratio_type>
+   [[nodiscard]] constexpr auto operator<(const ratio_type& left, const ratio_type& right) -> bool
+   {
+      const auto lcm = std::lcm(left.denom(), right.denom());
+      const auto left_normalized = left.num() * lcm / left.denom();
+      const auto right_normalized = right.num() * lcm / right.denom();
+      return left_normalized < right_normalized;
+   }
+   template<ultima_ratio::ratio_c ratio_type>
+   [[nodiscard]] constexpr auto operator>(const ratio_type& left, const ratio_type& right) -> bool
+   {
+      return right < left;
+   }
+   template<ultima_ratio::ratio_c ratio_type>
+   [[nodiscard]] constexpr auto operator<=(const ratio_type& left, const ratio_type& right) -> bool
+   {
+      return left < right || left == right;
+   }
+   template<ultima_ratio::ratio_c ratio_type>
+   [[nodiscard]] constexpr auto operator>=(const ratio_type& left, const ratio_type& right) -> bool
+   {
+      return left > right || left == right;
    }
 
 
@@ -163,5 +186,4 @@ namespace ultima_ratio
    ratio(const std::ratio<num, denom>) -> ratio<std::intmax_t>;
 }
 
-// todo: missing more comparisons
 // todo: construction from fp types if possible

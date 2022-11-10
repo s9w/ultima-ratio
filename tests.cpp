@@ -51,6 +51,15 @@ static_assert(2.0f * ratio(2, 1) == 4.0f);
 static_assert(4 / ratio(2,1) == 2);
 static_assert(ratio(2,1) / 2 == 1);
 
+// Comparisons
+static_assert(ratio(2, 1) != ratio(2,2));
+static_assert(ratio(1,4) < ratio(1,3));
+static_assert(ratio(1,3) > ratio(1,4));
+static_assert(ratio(1,3) >= ratio(1,4));
+static_assert(ratio(1,3) >= ratio(1,3));
+static_assert(ratio(1,4) < ratio(1,4) == false);
+static_assert(ratio(1,4) > ratio(1,4) == false);
+
 
 template<typename ex_type, typename fun_type>
 auto expect_throw(const fun_type& fun) -> void
