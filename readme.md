@@ -8,8 +8,8 @@ int value = factor * base_value;
 
 At some point you want the factor to be <1, maybe 1/2. Changing from multiplication to division is correct, but annoying. You could use a float and cast your way to the result. But you know it's dangerous as that only works for a small subset of values.
 
-*Surely* the committee solved this everyday issue gracefully. You leave confused after coming across [`std::ratio`](https://en.cppreference.com/w/cpp/numeric/ratio/ratio).
-You decide to take matters into your own hands and write your own `ratio` class. You spend some time thinking about edge cases, convenience functions, making everything `constexpr`, comparisons, error handling all all those goodies.
+*Surely* the C++ committee solved this everyday issue gracefully. You leave confused after coming across [`std::ratio`](https://en.cppreference.com/w/cpp/numeric/ratio/ratio).
+You decide to take matters into your own hands and write your own `ratio` class. You spend some time thinking about edge cases, convenience functions, making everything `constexpr`, comparisons, error handling and all those goodies.
 
 It's the **ultima ratio**.
 
@@ -17,6 +17,9 @@ It's the **ultima ratio**.
 [`ultima_ratio.h`](ultima_ratio.h) is a single-header C++20 library. It provides the type `ratio`. **All** functions are `constexpr`.
 
 ```c++
+#include <ultima_ratio.h>
+using namespace ultima_ratio;
+
 // Construction by two integral values. Their type dictates the value_type
 constexpr ratio half{1, 2};
 static_assert(std::same_as<decltype(half)::value_type, int>);
@@ -96,6 +99,6 @@ Oh and you can also construct a `ratio` from a `std::ratio`. Just be aware that 
 ## Error handling
 There's a couple of things that get caught:
 - A denominator of zero is illegal, your teacher was right. Throws `ultima_ratio::denom_zero_error`
-- Neither nominator nor denominator can be negative. Throws `ultima_ratio::negative_error`
+- Neither numerator nor denominator can be negative. Throws `ultima_ratio::negative_error`
 - Multiplication and division with integers can leave a remainder. This is considered an error and throws `ultima_ratio::remainder_error`
 - All exceptions are inherited from `ultima_ratio::error` which is inherited from `std::runtime_error`

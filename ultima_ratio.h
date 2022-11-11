@@ -237,31 +237,31 @@ namespace ultima_ratio
    requires(ratio_type::is_fp_comparable)
    [[nodiscard]] constexpr auto operator==(const ratio_type& left, const other_type right) -> bool
    {
-      return left.get_fp<other_type>() == right;
+      return left.template get_fp<other_type>() == right;
    }
    template<ratio_c ratio_type, std::floating_point other_type>
    requires(ratio_type::is_fp_comparable)
    [[nodiscard]] constexpr auto operator<(const ratio_type& left, const other_type right) -> bool
    {
-      return left.get_fp<other_type>() < right;
+      return left.template get_fp<other_type>() < right;
    }
    template<ratio_c ratio_type, std::floating_point other_type>
    requires(ratio_type::is_fp_comparable)
    [[nodiscard]] constexpr auto operator<=(const ratio_type& left, const other_type right) -> bool
    {
-      return left.get_fp<other_type>() <= right;
+      return left.template get_fp<other_type>() <= right;
    }
    template<ratio_c ratio_type, std::floating_point other_type>
    requires(ratio_type::is_fp_comparable)
    [[nodiscard]] constexpr auto operator<(const other_type left, const ratio_type& right) -> bool
    {
-      return left < right.get_fp<other_type>();
+      return left < right.template get_fp<other_type>();
    }
    template<ratio_c ratio_type, std::floating_point other_type>
    requires(ratio_type::is_fp_comparable)
    [[nodiscard]] constexpr auto operator<=(const other_type left, const ratio_type& right) -> bool
    {
-      return left <= right.get_fp<other_type>();
+      return left <= right.template get_fp<other_type>();
    }
 
 
@@ -272,5 +272,3 @@ namespace ultima_ratio
 
 } // namespace ultima_ratio
 
-// TODO: tiny types edge cases. maybe special paths for one- components?
-// TODO: godbolt conformance check
